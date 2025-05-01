@@ -3,6 +3,7 @@ import { hightlightsSlides } from '../constants'
 import { highlightSecondVideo, pauseImg, playImg, replayImg } from '../utils'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 
 const VideoCarousel = () => {
@@ -24,6 +25,12 @@ const VideoCarousel = () => {
    const { isEnd, isLastVideo, startPlay, videoId, isPlaying } = video
 
    useGSAP(() => {
+
+    gsap.to('#slider', {
+        transform:`translateX(${-100 * videoId})%`,
+        duration: 2,
+        ease: 'power2.inOut',
+    })
     gsap.to('#video', {
         scrollTrigger: {
             trigger: '#video',
@@ -39,6 +46,62 @@ const VideoCarousel = () => {
     })
    }, [isEnd, videoId])
 
+   
+
+   
+
+   useEffect(() => {
+    let currentProgress = 0
+    let span = videoSpanRef.current
+
+    if (span[videoId]){
+        let anim = gsap.to(span[videoId], {
+            onUpdate: () => {
+                const progress = Math.ceil(anim.progress() * 100 )
+
+                if(progress != currentProgress) {
+                    currentProgress = progress
+
+                    gsap.to(videoDivRef.current[videoId], {
+                        width: window.innerWidth < 760 ? '10vw' : window.innerWidth < 1200 ? '10vw' : '4vw'
+                    })
+
+                    gsap.to(span[videoId], {
+                        width: `${currentProgress}%`,backgroundColor: 'white' 
+                    })
+                }
+
+            },
+            onComplete: ()=> {
+                if(isPlaying) {
+                    gsap.to(videoDivRef.current[videoId], {
+                        width: '12px',
+                    })
+                    gsap.to(span[videoId], {
+                        backgroundColor: '#afafaf',
+
+                    })
+                }
+
+            }
+        })
+
+        if(videoId == 0 ) {
+            anim.restart()
+        }
+
+        const animUpdate = ( ) => {
+            anim.progress(videoRef.current[videoId].currentTime / hightlightsSlides[videoId].videoDuration)
+        }
+
+        if(isPlaying) {
+            gsap.ticker.add(animUpdate)
+        } else {
+            gsap.ticker.remove(animUpdate)
+        }
+    }
+   },[videoId, startPlay])
+
    useEffect(() => {
     if(loadedData.length > 3) {
         if(!isPlaying){
@@ -50,27 +113,11 @@ const VideoCarousel = () => {
         
    }, [startPlay, videoId, isPlaying, loadedData])
 
-   const handleLoadedMetadata = (i, e) => setloadedData((pre) => [...pre, e])
-
-   useEffect(() => {
-    const currentProgress = 0
-    let span = videoSpanRef.current
-
-    if (span[videoId]){
-        let anim = gsap.to(span[videoId], {
-            onUpdate: () => {
-
-            },
-            onComplete: ()=> {
-
-            }
-        })
-    }
-   },[videoId, startPlay])
+   
 
    const handleProcess = (type, i) => {
-    switch (key) {
-        case video-end:
+    switch (type) {
+        case 'video-end':
             setVideo((prevVideo) => ({...prevVideo, isEnd: true, videoId: i+ 1}))
             break;
         case 'video-last':
@@ -87,6 +134,8 @@ const VideoCarousel = () => {
             return video;
     }
    }
+
+   const handleLoadedMetadata = (i, e) => setloadedData((pre) => [...pre, e])
    
 
 
@@ -97,7 +146,12 @@ const VideoCarousel = () => {
                 <div key={list.id} id='slider' className='sm:pr-20 pr-10'>
                     <div className='video-carousel_container'>
                         <div className='w-full h-full flex-center rounded-3xl overflow-hidden bg-black'>
-                            <video id='video' playsInline={true} preload='auto' muted ref={(el) => videoRef.current[i] = el} onPlay={() => {
+                            <video id='video' playsInline={true} preload='auto' muted ref={(el) => videoRef.current[i] = el}
+                            onEnded={() => {
+                                i !== 3 ? handleProcess('video-end', i) :
+                                handleProcess('video-last')
+                            }}
+                             onPlay={() => {
                                 setVideo((prevVideo) => ({
                                     ...prevVideo,
                                     isPlaying: true
