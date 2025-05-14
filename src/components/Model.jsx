@@ -82,7 +82,7 @@ const Model = () => {
             />
 
             <Canvas
-              className="w-full h-full aboslute inset-0"
+              className="w-full h-full"
               style={{
                 position: 'fixed',
                 top: 0,
@@ -90,7 +90,6 @@ const Model = () => {
                 left: 0,
                 right: 0,
                 overflow: 'hidden'
-                
               }}
               eventSource={document.getElementById('root')}
             >
