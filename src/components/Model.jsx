@@ -82,16 +82,17 @@ const Model = () => {
             />
 
             <Canvas
-              className="w-full h-full"
+              className="w-full h-full aboslute inset-0"
               style={{
-                position: 'fixed',
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                overflow: 'hidden'
+                // position: 'fixed',
+                // top: 0,
+                // bottom: 0,
+                // left: 0,
+                // right: 0,
+                // overflow: 'hidden'
+                pointerEvents: 'none'
               }}
-              eventSource={document.getElementById('root')}
+              // eventSource={document.getElementById('root')}
             >
               <View.Port />
             </Canvas>
